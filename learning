@@ -1,0 +1,411 @@
+What is machine learning
+
+“A computer program is said to learn from experience E with respect to some task T and some performance measure P, if its performance on T, as measured by P, improves with experience E.” -- Tom Mitchell, Carnegie Mellon University
+So if you want your program to predict, for example, traffic patterns at a busy intersection (task T), you can run it through a machine learning algorithm with data about past traffic patterns (experience E) and, if it has successfully “learned”, it will then do better at predicting future traffic patterns (performance measure P).
+
+
+Supervised Machine Learning
+In the majority of supervised learning applications, the ultimate goal is to develop a finely tuned predictor function h(x) (sometimes called the “hypothesis”). “Learning” consists of using sophisticated mathematical algorithms to optimize this function so that, given input data x about a certain domain (say, square footage of a house), it will accurately predict some interesting value h(x) (say, market price for said house).
+In practice, x almost always represents multiple data points. So, for example, a housing price predictor might take not only square-footage (x1) but also number of bedrooms (x2), number of bathrooms (x3), number of floors (x4), year built (x5), zip code (x6), and so forth. Determining which inputs to use is an important part of ML design. However, for the sake of explanation, it is easiest to assume a single input value is used.
+So let’s say our simple predictor has this form:
+ 
+where   and   are constants. Our goal is to find the perfect values of   and   to make our predictor work as well as possible.
+Optimizing the predictor h(x) is done using training examples. For each training example, we have an input value x_train, for which a corresponding output, y, is known in advance. For each example, we find the difference between the known, correct value y, and our predicted value h(x_train). With enough training examples, these differences give us a useful way to measure the “wrongness” of h(x). We can then tweak h(x) by tweaking the values of   and   to make it “less wrong”. This process is repeated over and over until the system has converged on the best values for   and  . In this way, the predictor becomes trained, and is ready to do some real-world predicting.
+
+
+Machine Learning builds heavily on statistics. For example, when we train our machine to learn, we have to give it a statistically significant random sample as training data. If the training set is not random, we run the risk of the machine learning patterns that aren’t actually there. And if the training set is too small (see law of large numbers), we won’t learn enough and may even reach inaccurate conclusions. For example, attempting to predict company-wide satisfaction patterns based on data from upper management alone would likely be error-prone.
+With this understanding, let’s give our machine the data we’ve been given above and have it learn it. First we have to initialize our predictor h(x) with some reasonable values of   and  . Now our predictor looks like this when placed over our training set:
+ 
+
+
+The above example is technically a simple problem of univariate linear regression, which in reality can be solved by deriving a simple normal equation and skipping this “tuning” process altogether. However, consider a predictor that looks like this:
+ 
+This function takes input in four dimensions and has a variety of polynomial terms. Deriving a normal equation for this function is a significant challenge. Many modern machine learning problems take thousands or even millions of dimensions of data to build predictions using hundreds of coefficients. Predicting how an organism’s genome will be expressed, or what the climate will be like in fifty years, are examples of such complex problems.
+Many modern ML problems take thousands or even millions of dimensions of data to build predictions using hundreds of coefficients.
+Fortunately, the iterative approach taken by ML systems is much more resilient in the face of such complexity. Instead of using brute force, a machine learning system “feels its way” to the answer. For big problems, this works much better. While this doesn’t mean that ML can solve all arbitrarily complex problems (it can’t), it does make for an incredibly flexible and powerful tool.
+Gradient Descent - Minimizing “Wrongness”
+Let’s take a closer look at how this iterative process works. In the above example, how do we make sure   and   are getting better with each step, and not worse? The answer lies in our “measurement of wrongness” alluded to previously, along with a little calculus.
+The wrongness measure is known as the cost function (a.k.a., loss function),  . The input  represents all of the coefficients we are using in our predictor. So in our case,   is really the pair  and  .   gives us a mathematical measurement of how wrong our predictor is when it uses the given values of   and  .
+The choice of the cost function is another important piece of an ML program. In different contexts, being “wrong” can mean very different things. In our employee satisfaction example, the well-established standard is the linear least squares function:
+ 
+With least squares, the penalty for a bad guess goes up quadratically with the difference between the guess and the correct answer, so it acts as a very “strict” measurement of wrongness. The cost function computes an average penalty over all of the training examples.
+So now we see that our goal is to find   and   for our predictor h(x) such that our cost function   is as small as possible. We call on the power of calculus to accomplish this.
+Consider the following plot of a cost function for some particular Machine Learning problem:
+ 
+Here we can see the cost associated with different values of   and  . We can see the graph has a slight bowl to its shape. The bottom of the bowl represents the lowest cost our predictor can give us based on the given training data. The goal is to “roll down the hill”, and find   and   corresponding to this point.
+This is where calculus comes in to this machine learning tutorial. For the sake of keeping this explanation manageable, I won’t write out the equations here, but essentially what we do is take the gradient of  , which is the pair of derivatives of   (one over   and one over  ). The gradient will be different for every different value of   and  , and tells us what the “slope of the hill is” and, in particular, “which way is down”, for these particular  s. For example, when we plug our current values of   into the gradient, it may tell us that adding a little to   and subtracting a little from   will take us in the direction of the cost function-valley floor. Therefore, we add a little to  , and subtract a little from  , and voilà! We have completed one round of our learning algorithm. Our updated predictor, h(x) =   +  x, will return better predictions than before. Our machine is now a little bit smarter.
+This process of alternating between calculating the current gradient, and updating the  s from the results, is known as gradient descent.
+
+Under supervised ML, two major subcategories are:
+•	Regression machine learning systems: Systems where the value being predicted falls somewhere on a continuous spectrum. These systems help us with questions of “How much?” or “How many?”.
+•	Classification machine learning systems: Systems where we seek a yes-or-no prediction, such as “Is this tumer cancerous?”, “Does this cookie meet our quality standards?”, and so on.
+As it turns out, the underlying Machine Learning theory is more or less the same. The major differences are the design of the predictor h(x) and the design of the cost function  .
+
+
+In classification, a regression predictor is not very useful. What we usually want is a predictor that makes a guess somewhere between 0 and 1. In a cookie quality classifier, a prediction of 1 would represent a very confident guess that the cookie is perfect and utterly mouthwatering. A prediction of 0 represents high confidence that the cookie is an embarrassment to the cookie industry. Values falling within this range represent less confidence, so we might design our system such that prediction of 0.6 means “Man, that’s a tough call, but I’m gonna go with yes, you can sell that cookie,” while a value exactly in the middle, at 0.5, might represent complete uncertainty. This isn’t always how confidence is distributed in a classifier but it’s a very common design and works for purposes of our illustration.
+It turns out there’s a nice function that captures this behavior well. It’s called the sigmoid function, g(z), and it looks something like this:
+ 
+ 
+z is some representation of our inputs and coefficients, such as:
+ 
+so that our predictor becomes:
+ 
+Notice that the sigmoid function transforms our output into the range between 0 and 1.
+The logic behind the design of the cost function is also different in classification. Again we ask “what does it mean for a guess to be wrong?” and this time a very good rule of thumb is that if the correct guess was 0 and we guessed 1, then we were completely and utterly wrong, and vice-versa. Since you can’t be more wrong than absolutely wrong, the penalty in this case is enormous. Alternatively if the correct guess was 0 and we guessed 0, our cost function should not add any cost for each time this happens. If the guess was right, but we weren’t completely confident (e.g. y = 1, but h(x) = 0.8), this should come with a small cost, and if our guess was wrong but we weren’t completely confident (e.g. y = 1 but h(x) = 0.3), this should come with some significant cost, but not as much as if we were completely wrong.
+This behavior is captured by the log function, such that:
+ 
+Again, the cost function   gives us the average cost over all of our training examples.
+So here we’ve described how the predictor h(x) and the cost function   differ between regression and classification, but gradient descent still works fine.
+A classification predictor can be visualized by drawing the boundary line; i.e., the barrier where the prediction changes from a “yes” (a prediction greater than 0.5) to a “no” (a prediction less than 0.5). With a well-designed system, our cookie data can generate a classification boundary that looks like this:
+
+
+
+
+UNDERSTANDING THE BASICS
+WHAT IS DEEP LEARNING?
+Deep learning is a machine learning method that relies on artificial neural networks, allowing computer systems to learn by example. In most cases, deep learning algorithms are based on information patterns found in biological nervous systems.
+WHAT IS MACHINE LEARNING?
+As described by Arthur Samuel, Machine Learning is the "field of study that gives computers the ability to learn without being explicitly programmed."
+MACHINE LEARNING VS ARTIFICIAL INTELLIGENCE: WHAT’S THE DIFFERENCE?
+Artificial Intelligence (AI) is a broad term used to describe systems capable of making certain decisions on their own. Machine Learning (ML) is a specific subject within the broader AI arena, describing the ability for a machine to improve its ability by practicing a task or being exposed to large data sets.
+HOW TO LEARN MACHINE LEARNING?
+Machine Learning requires a great deal of dedication and practice to learn, due to the many subtle complexities involved in ensuring your machine learns the right thing and not the wrong thing. An excellent online course for Machine Learning is Andrew Ng's Coursera course.
+WHAT IS OVERFITTING IN MACHINE LEARNING?
+Overfitting is the result of focussing a Machine Learning algorithm too closely on the training data, so that it is not generalized enough to correctly process new data. It is an example of a machine "learning the wrong thing" and becoming less capable of correctly interpreting new data.
+WHAT IS A MACHINE LEARNING MODEL?
+A Machine Learning model is a set of assumptions about the underlying nature the data to be trained for. The model is used as the basis for determining what a Machine Learning algorithm should learn. A good model, which makes accurate assumptions about the data, is necessary for the machine to give good results
+
+
+
+
+
+
+Deep learning 
+
+Neural Networks ● Generally speaking, neural networks are nonlinear machine learning models. ● They can be used for supervised or unsupervised learning. ● Deep learning refers to training neural nets with multiple layers. ○ They are more powerful but only if you have lots of data to train them on. ● Keras is used to create neural network models
+
+1.	What are CNNs ● While the model is being trained, let’s understand what a CNN looks like and what it’s good for. ● CNNs use convolutional operations to extract features that are position invariant. ○ In other words, they make it possible to train models that detect features no matter what position they are in the input samples 17
+2.	18. Example #2 - What are CNNs ● For this reason, they are often used for image classification: 18
+3.	19. Example #3 ● CNNs can also be used for text classification ○ In fact, they produce state-of-the-art results in tasks such as: ■ Text classification ■ Sentiment analysis ● Let’s train a CNN model to classify documents in the newsgroup_20 dataset ● NOTEBOOK IMDB CNN 19
+4.	20. Keras: Models ● The most important part of keras are models. ● Model = layers, loss and an optimizer ● These are the objects that you add Layers to, call compile() and fit() on. ● Models can be saved and checkpointed for later use 20
+5.	21. Keras: Layers ● Layers are used to define what your architecture looks like ● Examples of layers are: ○ Dense layers (this is the normal, fully-connected layer) ○ Convolutional layers (applies convolution operations on the previous layer) ○ Pooling layers (used after convolutional layers) ○ Dropout layers (these are used for regularization, to avoid overfitting) 21
+6.	22. Keras: Loss Functions ● Loss functions are used to compare the network’s predicted output with the real output, in each pass of the backpropagations algorithm ○ Loss functions are used to tell the model how the weights should be updated ● Common loss functions are: ○ Mean squared error ○ Cross-entropy ○ etc. 22
+
+1.	Keras: Models ● The most important part of keras are models. ● Model = layers, loss and an optimizer ● These are the objects that you add Layers to, call compile() and fit() on. ● Models can be saved and checkpointed for later use 20
+2.	Keras: Layers ● Layers are used to define what your architecture looks like ● Examples of layers are: ○ Dense layers (this is the normal, fully-connected layer) ○ Convolutional layers (applies convolution operations on the previous layer) ○ Pooling layers (used after convolutional layers) ○ Dropout layers (these are used for regularization, to avoid overfitting) 21
+3.	Keras: Loss Functions ● Loss functions are used to compare the network’s predicted output with the real output, in each pass of the backpropagations algorithm ○ Loss functions are used to tell the model how the weights should be updated ● Common loss functions are: ○ Mean squared error ○ Cross-entropy ○ etc. 22
+4.	 Keras: Optimizers ● Optimizers are strategies used to update the network’s weights in the backpropagation algorithm. ● The most simple optimizer is the Stochastic Gradient Descent Algorithm (SGD), but there are many other you can choose, such as: ○ RMSProp ○ Adagrad 
+5.	 Keras: Optimizers ● Most optimizers can be tuned using hyperparameters, such as: 
+○ The learning rate to use ○ Whether or not to use momentum 
+
+Keras: Other information ● Feature preprocessing ○ Although you can use any other method for feature preprocessing, keras has a couple of utilities to help, such as: ■ To_categorical (to one-hot encode data) ■ Text preprocessing utilities, such as tokenizing 26
+1.	 Keras: Other information ● You can integrate Keras models into a Scikit-learn Pipeline. ○ There are special wrapper functions available on Keras to help you implement the methods that are expected by a scikit-learn classifier, such as fit(), predict(), predict_proba(), etc. ○ You can also use things like scikit-learn’s grid_search, to do model selection on Keras models, to decide what are the best hyperparameters for a given task. 27
+2.	Keras: Other information ● Nearly everything in Keras can be regularized. In addition to the Dropout layer, there are all sorts of other regularizers available, such as: ○ Weight regularizers ○ Bias regularizers ○ Activity regularizers 
+
+
+
+
+
+
+ReLu will be the activation function for hidden layers. As this is a binary classification problem we will use sigmoid as the activation function.
+Dense layer implements
+output = activation(dot(input, kernel) + bias)
+kernel is the weight matrix. kernel initialization defines the way to set the initial random weights of Keras layers.
+
+
+Random normal initializer generates tensors with a normal distribution.
+For uniform distribution, we can use Random uniform initializers.
+Keras provides multiple initializers for both kernel or weights as well as for bias units.
+
+
+Once the different layers are created we now compile the neural network.
+As this is a binary classification problem, we use binary_crossentropy to calculate the loss function between the actual output and the predicted output.
+To optimize our neural network we use Adam. Adam stands for Adaptive moment estimation. Adam is a combination of RMSProp + Momentum.
+Momentum takes the past gradients into account in order to smooth out the gradient descent.
+
+classifier = Sequential()
+#First Hidden Layer
+classifier.add(Dense(4, activation='relu', kernel_initializer='random_normal', input_dim=8))
+#Second  Hidden Layer
+classifier.add(Dense(4, activation='relu', kernel_initializer='random_normal'))
+#Output Layer
+classifier.add(Dense(1, activation='sigmoid', kernel_initializer='random_normal'))
+
+#Compiling the neural network
+classifier.compile(optimizer ='adam',loss='binary_crossentropy', metrics =['accuracy'])
+
+
+#Fitting the data to the training dataset
+classifier.fit(X_train,y_train, batch_size=10, epochs=100)
+
+
+eval_model=classifier.evaluate(X_train, y_train)
+eval_model
+
+
+
+y_pred=classifier.predict(X_test)
+y_pred =(y_pred>0.5)
+
+
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
+
+
+
+loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+
+Feature extraction
+
+Numerical Imputation,Handling Outliers with Standard Deviation,Outlier Detection with Percentiles,Binning,Log Transform,One-hot encoding,Grouping Operations,Feature Split,Scaling using Normalization,Standardization
+
+
+Loss functions 
+
+What’s a Loss Function?
+At its core, a loss function is incredibly simple: it’s a method of evaluating how well your algorithm models your dataset. If your predictions are totally off, your loss function will output a higher number. If they’re pretty good, it’ll output a lower number. As you change pieces of your algorithm to try and improve your model, your loss function will tell you if you’re getting anywhere.
+In fact, we can design our own (very) basic loss function to further explain how it works. For each prediction that we make, our loss function will simply measure the absolute difference between our prediction and the actual value. In mathematical notation, it might look something like abs(y_predicted – y). Here’s what some situations might look like if we were trying to predict how expensive the rent is in some NYC apartments:
+
+Loss functions can be broadly categorized into 2 types: Classification and Regression Loss. In this post, I’m focussing on regression loss. In future posts I cover loss functions in other categories. Please let me know in comments if I miss something. Also, all the codes and plots shown in this blog can be found in this notebook.
+
+ 
+Regression functions predict a quantity, and classification functions predict a label.
+
+
+1. Mean Square Error, Quadratic loss, L2 Loss
+Mean Square Error (MSE) is the most commonly used regression loss function. MSE is the sum of squared distances between our target variable and predicted values.
+
+ 
+
+
+2. Mean Absolute Error, L1 Loss
+Mean Absolute Error (MAE) is another loss function used for regression models. MAE is the sum of absolute differences between our target and predicted variables. So it measures the average magnitude of errors in a set of predictions, without considering their directions. (If we consider directions also, that would be called Mean Bias Error (MBE), which is a sum of residuals/errors). The range is also 0 to ∞.
+
+ 
+
+ 
+Plot of MAE Loss (Y-axis) vs. Predictions (X-axis)
+MSE vs. MAE (L2 loss vs L1 loss)
+In short, using the squared error is easier to solve, but using the absolute error is more robust to outliers. But let’s understand why!
+
+
+MAE loss is useful if the training data is corrupted with outliers (i.e. we erroneously receive unrealistically huge negative/positive values in our training environment, but not our testing environment).
+
+L1 loss is more robust to outliers, but its derivatives are not continuous, making it inefficient to find the solution. L2 loss is sensitive to outliers, but gives a more stable and closed form solution (by setting its derivative to 0.)
+
+
+Huber Loss, Smooth Mean Absolute Error
+Huber loss is less sensitive to outliers in data than the squared error loss. It’s also differentiable at 0. It’s basically absolute error, which becomes quadratic when error is small. How small that error has to be to make it quadratic depends on a hyperparameter, 𝛿 (delta), which can be tuned. Huber loss approaches MAE when 𝛿 ~ 0 and MSE when 𝛿 ~ ∞ (large numbers.)
+
+ 
+
+ 
+Plot of Hoss Loss (Y-axis) vs. Predictions (X-axis). True value = 0
+The choice of delta is critical because it determines what you’re willing to consider as an outlier. Residuals larger than delta are minimized with L1 (which is less sensitive to large outliers), while residuals smaller than delta are minimized “appropriately” with L2.
+Why use Huber Loss?
+One big problem with using MAE for training of neural nets is its constantly large gradient, which can lead to missing minima at the end of training using gradient descent. For MSE, gradient decreases as the loss gets close to its minima, making it more precise.
+
+
+
+5. Quantile Loss
+In most of the real world prediction problems, we are often interested to know about the uncertainty in our predictions. Knowing about the range of predictions as opposed to only point estimates can significantly improve decision making processes for many business problems.
+Quantile loss functions turn out to be useful when we are interested in predicting an interval instead of only point predictions. Prediction interval from least square regression is based on an assumption that residuals (y — y_hat) have constant variance across values of independent variables
+
+
+Cross-Entropy
+Cross-entropy loss, or log loss, measures the performance of a classification model whose output is a probability value between 0 and 1. Cross-entropy loss increases as the predicted probability diverges from the actual label. So predicting a probability of .012 when the actual observation label is 1 would be bad and result in a high loss value. A perfect model would have a log loss of 0.
+ 
+The graph above shows the range of possible loss values given a true observation (isDog = 1). As the predicted probability approaches 1, log loss slowly decreases. As the predicted probability decreases, however, the log loss increases rapidly. Log loss penalizes both types of errors, but especially those predictions that are confident and wrong!
+
+Log Loss is a loss function also used frequently in classification problems, and is one of the most popular measures for Kaggle competitions. It’s just a straightforward modification of the likelihood function with logarithms.
+ 
+This is actually exactly the same formula as the regular likelihood function, but with logarithms added in. You can see that when the actual class is 1, the second half of the function disappears, and when the actual class is 0, the first half drops. That way, we just end up multiplying the log of the actual predicted probability for the ground truth class.
+The cool thing about the log loss loss function is that is has a kick: it penalizes heavily for being very confident and very wrong. Predicting high probabilities for the wrong class makes the function go crazy. The graph below is for when the true label =1, and you can see that it skyrockets as the predicted probability for label = 0 approaches 1.
+
+
+If M>2M>2 (i.e. multiclass classification), we calculate a separate loss for each class label per observation and sum the result.
+−∑c=1Myo,clog(po,c)−∑c=1Myo,clog⁡(po,c)
+Note
+•	M - number of classes (dog, cat, fish)
+•	log - the natural log
+•	y - binary indicator (0 or 1) if class label cc is the correct classification for observation oo
+•	p - predicted probability observation oo is of class c
+
+Loss Functions and Optimizers
+
+Loss functions provide more than just a static representation of how your model is performing–they’re how your algorithms fit data in the first place. Most machine learning algorithms use some sort of loss function in the process of optimization, or finding the best parameters (weights) for your data.
+For a simple example, consider linear regression. In traditional “least squares” regression, the line of best fit is determined through none other than MSE (hence the least squares moniker)! For each set of weights that the model tries, the MSE is calculated across all input examples. The model then optimizes the MSE functions––or in other words, makes it the lowest possible––through the use of an optimizer algorithm like Gradient Descen
+
+
+Working with Optimisation Functions:
+We used three first order optimisation functions and studied their effect.
+1.	Stochastic Gradient Decent
+2.	Adagrad
+3.	Adam
+Gradient Descent calcultes gradient for the whole dataset and updates values in direction opposite to the gradients until we find a local minima. Stochastic Gradient Descent performs a parameter update for each training example unlike normal Gradient Descent which performs only one update. Thus it is much faster. Gradient Decent algorithms can further be improved by tuning important parametes like momentum, learning rate etc.
+Adagrad is more preferrable for a sparse data set as it makes big updates for infrequent parameters and small updates for frequent parameters. It uses a different learning Rate for every parameter θ at a time step based on the past gradients which were computed for that parameter. Thus we do not need to manually tune the learning rate.
+Adam stands for Adaptive Moment Estimation. It also calculates different learning rate. Adam works well in practice, is faster, and outperforms other techniques.
+
+
+Stochastic Gradient Decent was much faster than the other algorithms but the results produced were far from optimum. Both, Adagrad and Adam produced better results that SGD, but they were computationally extensive. Adam was slightly faster than Adagrad. Thus, while using a particular optimization function, one has to make a trade off between more computation power and more optimum results.
+Weighing factors: Each input in the feature vector is assigned its own relative weight (w), which decides the impact that the particular input needs in the summation function. In relatively easier terms, some inputs are made more important than others by giving them more weight so that they have a greater effect in the summation function (y). A bias (wo) is also added to the summation.
+
+Activation function: The result of the summation function, that is the weighted sum, is transformed to a desired output by employing a non linear function (fNL), also known as activation function. Since the desired output is probability of an event in this case, a sigmoid function can be used to restrict the results (y) between 0 and 1.
+
+Loss Functions:
+Thus, loss functions are helpful to train a neural network. Given an input and a target, they calculate the loss, i.e difference between output and target variable. Loss functions fall under four major category:
+Regressive loss functions:
+They are used in case of regressive problems, that is when the target variable is continuous. Most widely used regressive loss function is Mean Square Error. Other loss functions are:
+1. Absolute error — measures the mean absolute value of the element-wise difference between input;
+2. Smooth Absolute Error — a smooth version of Abs Criterion.
+Classification loss functions:
+The output variable in classification problem is usually a probability value f(x), called the score for the input x. Generally, the magnitude of the score represents the confidence of our prediction. The target variable y, is a binary variable, 1 for true and -1 for false. 
+On an example (x,y), the margin is defined as yf(x). The margin is a measure of how correct we are. Most classification losses mainly aim to maximize the margin. Some classification algorithms are:
+1. Binary Cross Entropy 
+2. Negative Log Likelihood
+3. Margin Classifier
+4. Soft Margin Classifier
+Embedding loss functions:
+It deals with problems where we have to measure whether two inputs are similar or dissimilar. Some examples are:
+1. L1 Hinge Error- Calculates the L1 distance between two inputs.
+2. Cosine Error- Cosine distance between two inputs.
+Visualising Loss Functions:
+We performed the task to reconstruct an image using a type of neural network called Autoencoders. Different results were obtained for the same task by using different Loss Functions, while everything else in the neural network architecture remained constant. Thus, the difference in result represents the properties of the different loss functions employed. A very simple data set, MNIST data set was used for this purpose. Three loss functions were used to reconstruct images.
+1.	Absolute Loss Function
+2.	Mean Square Loss Funtion
+3.	Smooth Absolute Loss Function.
+
+
+While the Absolute error just calculated the mean absolute value between of the pixel-wise difference, Mean Square error uses mean squared error. Thus it was more sensitive to outliers and pushed pixel value towards 1 (in our case, white as can be seen in image after first epoch itself).
+Smooth L1 error can be thought of as a smooth version of the Absolute error. It uses a squared term if the squared element-wise error falls below 1 and L1 distance otherwise. It is less sensitive to outliers than the Mean Squared Error and in some cases prevents exploding gradients.
+Adaptive Learning Algorithms:
+The challenge of using gradient descent is that their hyper parameters have to be defined in advance and they depend heavily on the type of model and problem. Another problem is that the same learning rate is applied to all parameter updates. If we have sparse data, we may want to update the parameters in different extent instead.
+Adaptive gradient descent algorithms such as Adagrad, Adadelta, RMSprop, Adam, provide an alternative to classical SGD. They have per-paramter learning rate methods, which provide heuristic approach without requiring expensive work in tuning hyperparameters for the learning rate schedule manually.
+
+
+Mean Squared Error
+When you have a regression task, one of the loss function you can go ahead is this one. As the name suggests, this loss is calculated by taking the mean of squared differences between actual(target) and predicted values.
+For Example, you have a neural network with which takes some data related to house and predicts it’s price. In this case, you can use the MSE loss. Basically, in the case where the output is a real number, you should use this loss function.
+ 
+ 
+Mean Squared Error
+Binary Cross entropy
+When you have a binary classification task, one of the loss function you can go ahead is this one. If you are using BCE loss function, you just need one output node to classify the data into two classes. The output value should be passed through a sigmoid activation function so the output is in the range of (0–1).
+For example, you have a neural network which takes data related to atmosphere and predicts whether it will rain or not. If the output is greater than 0.5, the network classifies it as rain and if the output is less than 0.5, the network classifies it as not rain. (it could be opposite depending upon how you train the network). More the probability score value, more the chance of raining.
+
+ 
+Binary Crossentropy
+While training the network, the target value fed to the network should be 1 if it is raining otherwise 0.
+One important thing, if you are using BCE loss function the output of the node should be between (0–1). It means you have to use sigmoid activation function on your final output. Since sigmoid converts any real value in the range between (0–1).
+What if you are not using sigmoid activation on the final layer? Then you can pass an argument called from logits as true to the loss function and it will internally apply the sigmoid to the output value.
+Categorical Crossentropy
+When you have a multi-class classification task, one of the loss function you can go ahead is this one. If you are using CCE loss function, there must be the same number of output nodes as the classes. And the final layer output should be passed through a softmax activation so that each node output a probability value between (0–1).
+For example, you have a neural network which takes an image and classifies it into a cat or dog. If cat node has high probability score then the image is classified into cat otherwise dog. Basically, whichever class node has the highest probability score, the image is classified into that class.
+
+ 
+Categorical Crossentropy
+For feeding the target value at the time of training, you have to one hot encode them. If the image is of cat then target vector would be (1, 0) and if the image is of dog, target vector would be (0, 1). Basically, target vector would be of the same size as the number of classes and the index position corresponding to the actual class would be 1 and all other would be zero.
+What if you are not using softmax activation on the final layer? Then you can pass an argument called from logits as true to the loss function and it will internally apply the softmax to the output value. Same as in the above case.
+Sparse Categorical Crossentropy
+This loss function is almost similar to CCE except for one change.
+When you are using SCCE loss function, you do not need to one hot encode the target vector. If the target image is of a cat, you simply pass 0, otherwise 1. Basically, whichever the class is you just pass the index of that class.
+
+ 
+Sparse Categorical Crossentropy
+
+
+Model Evaluation Metrics
+A module evaluation metric is a criterium by which the performance or the accuracy of a model is measured.
+Classification Accuracy
+Classification accuracy is by far the most common model evaluation metric used for classification problems. Classification accuracy is the percentage of correct predictions.
+Even though classification is a good metric, when class distribution is imbalanced, it can give a false sense of high accuracy.
+Scikit-learn provides a separate method to evaluate the accuracy, which is accuracy_score in the metrics module. Also the accuracy estimator is built in as a parameter in cross_val_score. The scoring parameter is what decides the classification accuracy.
+The classification accuracy metric works better if there is an equal number of samples in each class.
+Confusion Matrix
+A confusion matrix can be defined loosely as a table that describes the performance of a classification model on a set of test data for which the true values are known. A confusion matrix is highly interpretative and can be used to estimate a number of other metrics.
+Scikit-learn provides a method to perform the confusion matrix on the testing data set. The confusion_matrix method requires the actual response class values and the predicted values to determine the matrix.
+from sklearn.metrics import confusion_matrixconfusion = confusion_matrix(y_test, y_pred)
+print(confusion)
+
+plot_confusion_matrix(confusion, classes=[‘Non Diabetic’, ‘Diabetic’], title=’Confusion matrix’)
+The basic terminology related to the confusion matrix is as follows. We’ll interpret with regards to our problem.
+•	True Positives (TP) : Correct prediction as Diabetic
+•	True Negatives (TN) : Correct prediction as Non-diabetic
+•	False Positives (FP) : Incorrect prediction as Diabetic (‘Type I error’)
+•	False Negatives (FN) : Incorrect prediction as Non-diabetic (‘Type II error’)
+Metrics computed from the confusion matrix
+First we’ll parse the obtained confusion matrix into True Positives(TP), True Negatives (TN), False Positives (FP), and False Negatives (FN).
+
+# True Positives
+TP = confusion[1, 1]
+# True Negatives
+TN = confusion[0, 0]
+# False Positives
+FP = confusion[0, 1]
+# False Negatives
+FN = confusion[1, 0]
+
+
+Classification accuracy
+Classification accuracy is the ratio of correct predictions to the total no. of predictions. Or more simply, how often is the classifier correct.
+Accuracy can also be calculated using the method accuracy_score. We can observe that the accuracy is 0.795.
+print((TP + TN) / float(TP + TN + FP + FN))
+print(accuracy_score(y_test, y_pred))
+Specificity
+Specificity is the ratio of correct negative predictions to the total no. of negative predictions. This determines how specific the classifier is in predicting positive instances.
+False Positive Rate
+The false positive rate is the ratio of negative predictions that were determined to be positive to the total number of negative predictions. Or, when the actual value is negative, how often is the prediction incorrect.
+Precision
+Precision is the ratio of correct predictions to the total no. of predicted correct predictions. This measures how precise the classifier is when predicting positive instances
+Adjusting Classification Threshold
+It’s possible to adjust the logistic regression model’s classification threshold to increase the model’s sensitivity.
+ROC curve
+An ROC curve is a commonly used way to visualize the performance of a binary classifier, meaning a classifier with two possible output classes. The curve plots the True Positive Rate (Recall) against the False Positive Rate (also interpreted as 1-Specificity).
+Scikit-learn provides a method called roc_curve to find the false positive and true positive rates across various thresholds, which we can use to draw the ROC curve. We can plot the curve as follows.
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob)
+plt.plot(fpr, tpr)
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.0])
+plt.title(‘ROC curve for diabetes classifier’)
+plt.xlabel(‘False Positive Rate (1 — Specificity)’)
+plt.ylabel(‘True Positive Rate (Sensitivity)’)
+plt.grid(
+True)
+
+
+AUC (Area Under the Curve)
+AUC or Area Under the Curve is the percentage of the ROC plot that is underneath the curve. AUC is useful as a single number summary of classifier performance.
+In Scikit-learn, we can find the AUC score using the method roc_auc_score.
+print(roc_auc_score(y_test, y_pred_prob))OUTPUT :
+0.858769314177
+
+Also, the cross_val_score method, which is used to perform the K-fold cross validation method, comes with the option to pass roc_auc as the scoring parameter. Therefore, we can measure the AUC score using the cross validation procedure as well.
+cross_val_score(logreg, X, y, cv=10, scoring=’roc_auc’).mean()OUTPUT :
+0.83743085106382975
+
+NLP
+What is Text Wrangling?
+NLTK – natural lang tool kit 
+
+
+Sentence Splitting
+
+from nltk.tokenize import sent_tokenize
+tokenized_sent = sent_tokenize(sampleString)
+print(tokenized_sent)
+
+from nltk.tokenize import sent_tokenize
+tokenized_sent = sent_tokenize(sampleString)
+print(tokenized_sent)
+
+Tokenization
+By now, you’re probably wondering what tokenization is. Well a token is the smallest text unit a machine can process. Therefore, every chunk of text needs to be tokenized before you can run natural language programs on it. Sometimes, it makes sense for the smallest unit to be either a word or a letter. In the previous section, we tokenized the paragraph into sentences.
+For a language like English, it can be easy to tokenize text, especially with nltk to guide us. Here’s how we can tokenize text using just a few lines of code:
+msg = “Hey everyone! The party starts in 10mins. Be there ASAP!”
+print(msg.split())
+from nltk.tokenize import word_tokenize, regexp_tokenize
+word_tokenize(msg)
+
+
